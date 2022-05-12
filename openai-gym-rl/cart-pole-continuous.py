@@ -2,26 +2,35 @@ import gym
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import trange
+
+import random
+
+random.seed(42)
+
 from tiles3 import tiles, IHT
 
-DISCOUNT = 0.96  # gamma
-EXPLORE_RATE = 0.15  # epsilon
-LEARNING_RATE = 0.05  # alpha
-EPISODES = (100, 100)
+DISCOUNT = 0.99  # gamma
+EXPLORE_RATE = 0.1  # epsilon
+# LEARNING_RATE = 0.05  # alpha
+EPISODES = (50, 10)
 MAX_ITER = 250
 RENDER = False
 
 maxSize = 2048
 iht = IHT(maxSize)
-numTilings = 8
+numTilings = 32
 stepSize = 0.1/numTilings
 
 weights = np.zeros(shape=maxSize)
 
 
-def mytiles(X, tile_dim=10.0, min_x=-4., max_x=4.):
+def mytiles(X, tile_dim=5.0, min_x=-4., max_x=4.):
     scaleFactor = tile_dim / (max_x - min_x)
-    return tiles(iht, numTilings, scaleFactor*X)
+    X[0] *= tile_dim/(2*2.4)
+    X[1] *= tile_dim/(2*5)
+    X[2] *= tile_dim/(2*0.2)
+    X[3] *= tile_dim/2
+    return tiles(iht, numTilings, X)
 
 
 def v_hat(X):
@@ -31,14 +40,6 @@ def v_hat(X):
 if __name__ == "__main__":
 
     cart_pole = gym.make("CartPole-v1")
-
-    low_cart = cart_pole.observation_space.low
-    low_cart[2] = 0.25 * low_cart[2]
-    low_cart[3] = -4.
-
-    high_cart = cart_pole.observation_space.high
-    high_cart[2] = 0.25 * high_cart[2]
-    high_cart[3] = 4.
 
     accumulated_return = np.zeros(shape=EPISODES[0])
 
@@ -50,7 +51,7 @@ if __name__ == "__main__":
             observation = cart_pole.reset()
             for t in range(MAX_ITER):
                 cart_pole.render() if RENDER else None
-                curr_state = observation[2:]
+                curr_state = observation[:]
                 if np.random.uniform() < EXPLORE_RATE:
                     action = cart_pole.action_space.sample()
                 else:
@@ -58,10 +59,7 @@ if __name__ == "__main__":
                     push_right = v_hat(np.concatenate([curr_state, [1]]))
                     action = 1 if push_right > push_left else 0
                 observation, reward, done, info = cart_pole.step(action)
-                next_state = observation[2:]
-
-                if done:
-                    reward *= -2.
+                next_state = observation[:]
 
                 state_tiles = mytiles(np.concatenate([curr_state, [action]]))
                 v_hat_next = np.max(
@@ -100,3 +98,23 @@ if __name__ == "__main__":
     plt.title("Mean accumulated return")
     plt.savefig("acc-return-cont.png")
     plt.show()
+
+    observation = cart_pole.reset()
+
+    for t in range(MAX_ITER):
+        cart_pole.render()
+        curr_state = observation
+
+        push_left = v_hat(np.concatenate([curr_state, [0]]))
+        push_right = v_hat(np.concatenate([curr_state, [1]]))
+        action = 1 if push_right > push_left else 0
+
+        observation, reward, done, info = cart_pole.step(action)
+        cart_pos = observation[0]
+        if (
+            cart_pos < cart_pole.observation_space.low[0]
+            or cart_pos > cart_pole.observation_space.high[0]
+        ):
+            break
+
+    cart_pole.close()
