@@ -1,0 +1,26 @@
+#VRML_SIM R2022a utf8
+WorldInfo {
+  basicTimeStep 16
+  physicsDisableTime 0
+}
+Viewpoint {
+  orientation 0.27039530870843603 -0.04956949644696401 -0.9614724343684867 3.4905168842454617
+  position 0.291831062251305 -0.09186406560095312 0.2868902623608204
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 2 2
+  wallHeight 0.2
+}
+Robot {
+  name "supervisor"
+  controller "supervisor_controller"
+  supervisor TRUE
+}
+DEF BURGER TurtleBot3Burger {
+  controller "turtlebot3_controller"
+  customData "0.7461981069620702 1.0337640222903037"
+}

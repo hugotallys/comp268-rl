@@ -1,0 +1,19 @@
+#VRML_OBJ R2022a
+
+DEF GOAL Solid {
+  translation 0.5 0.5 0
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0
+        transparency 0.25
+        metalness 0
+      }
+      geometry Box {
+        size 0.25 0.25 0.05
+      }
+      castShadows FALSE
+    }
+  ]
+  name "goal"
+}
