@@ -24,16 +24,13 @@ stepSize = 0.1/numTilings
 weights = np.zeros(shape=maxSize)
 
 
-def mytiles(X, tile_dim=5.0, min_x=-4., max_x=4.):
-    scaleFactor = tile_dim / (max_x - min_x)
-    X[0] *= tile_dim/(2*2.4)
-    X[1] *= tile_dim/(2*5)
-    X[2] *= tile_dim/(2*0.2)
-    X[3] *= tile_dim/2
-    return tiles(iht, numTilings, X)
+def mytiles(X, tile_dim=5.0):
+    X[-2] = X[-2] / (2*np.sqrt(2))
+    X[-1] = (np.pi + X[-1]) / (2*np.pi)
+    return tiles(iht, numTilings, tile_dim*X)
 
 
-def v_hat(X):
+def q_hat(X):
     return weights[mytiles(X)].sum()
 
 

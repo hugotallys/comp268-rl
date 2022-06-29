@@ -4,8 +4,8 @@ WorldInfo {
   physicsDisableTime 0
 }
 Viewpoint {
-  orientation 0.27039530870843603 -0.04956949644696401 -0.9614724343684867 3.4905168842454617
-  position 0.291831062251305 -0.09186406560095312 0.2868902623608204
+  orientation -0.19689399873767255 0.49862603191362914 0.8441592465637973 0.8750813435856098
+  position -2.3608574396854354 -2.249776201128164 1.7802185954805998
 }
 TexturedBackground {
 }
@@ -20,7 +20,144 @@ Robot {
   controller "supervisor_controller"
   supervisor TRUE
 }
-DEF BURGER TurtleBot3Burger {
+DEF WAFFLE Robot {
+  translation 0 0 0.05
+  children [
+    Solid {
+      children [
+        Solid {
+          translation 0 -0.05 0.01
+          children [
+            Lidar {
+              translation 0 0 0.055
+              rotation 0 0 1 1.5707
+              name "LDS-01"
+              horizontalResolution 8
+              fieldOfView 6.2831
+              numberOfLayers 1
+            }
+            Shape {
+              appearance PBRAppearance {
+                baseColor 0 0 1
+                roughness 1
+                metalness 0
+              }
+              geometry Cylinder {
+                height 0.1
+                radius 0.012
+              }
+            }
+          ]
+          name "Pole"
+        }
+        BallJoint {
+          jointParameters BallJointParameters {
+            anchor 0 -0.05 -0.04
+          }
+          jointParameters2 JointParameters {
+          }
+          jointParameters3 JointParameters {
+            axis 0 1 0
+          }
+          endPoint Solid {
+            translation -5.29396e-22 -0.05 -0.04
+            rotation -0.660817654483817 0.23795538589462248 -0.7118267077359824 2.758538693938388
+            children [
+              DEF WAFFLE_CASTER Shape {
+                appearance PBRAppearance {
+                  roughness 1
+                  metalness 0
+                }
+                geometry Sphere {
+                  radius 0.01
+                  subdivision 3
+                }
+              }
+            ]
+            boundingObject USE WAFFLE_CASTER
+            physics Physics {
+            }
+          }
+        }
+        HingeJoint {
+          jointParameters HingeJointParameters {
+            anchor 0.11 0.05 0
+          }
+          device [
+            RotationalMotor {
+              name "left wheel motor"
+            }
+          ]
+          endPoint Solid {
+            translation 0.11 0.05 0
+            rotation 0.6440259939040505 0.41366785802429973 0.6435133428402926 2.356563523722624
+            children [
+              DEF WAFFE_WHEEL Shape {
+                appearance PBRAppearance {
+                  roughness 1
+                  metalness 0
+                }
+                geometry Cylinder {
+                  height 0.02
+                  radius 0.05
+                }
+              }
+            ]
+            name "solid(2)"
+            boundingObject USE WAFFE_WHEEL
+            physics Physics {
+            }
+          }
+        }
+        HingeJoint {
+          jointParameters HingeJointParameters {
+            anchor -0.11 0.05 0
+          }
+          device [
+            RotationalMotor {
+              name "right wheel motor"
+            }
+          ]
+          endPoint Solid {
+            translation -0.11 0.05 0
+            rotation 0.6440259939040505 0.41366785802429973 0.6435133428402926 2.356563523722624
+            children [
+              DEF WAFFE_WHEEL Shape {
+                appearance PBRAppearance {
+                  roughness 1
+                  metalness 0
+                }
+                geometry Cylinder {
+                  height 0.02
+                  radius 0.05
+                }
+              }
+            ]
+            name "solid(1)"
+            boundingObject USE WAFFE_WHEEL
+            physics Physics {
+            }
+          }
+        }
+        DEF WAFFLE_BODY Shape {
+          appearance PBRAppearance {
+            baseColor 1 0 0
+            roughness 1
+            metalness 0
+          }
+          geometry Box {
+            size 0.2 0.2 0.05
+          }
+        }
+      ]
+      boundingObject USE WAFFLE_BODY
+      physics Physics {
+      }
+    }
+  ]
+  boundingObject USE WAFFLE_BODY
+  physics Physics {
+  }
   controller "turtlebot3_controller"
-  customData "0.7461981069620702 1.0337640222903037"
+  customData "1.0677935048054528 0.29151174696035925;1.5843230168857336;"
 }
