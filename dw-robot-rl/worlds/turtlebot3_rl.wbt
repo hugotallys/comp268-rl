@@ -1,0 +1,107 @@
+#VRML_SIM R2022a utf8
+WorldInfo {
+  basicTimeStep 16
+  physicsDisableTime 0
+}
+Viewpoint {
+  orientation 0.38494934899819294 -0.31116633241001596 -0.8689013248236919 4.419569469025813
+  position 0.4272926967937047 -1.5334041087345054 1.6649396753861394
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorTileSize 0.25 0.25
+  wallHeight 0.15
+}
+Robot {
+  name "supervisor"
+  controller "supervisor_controller"
+  supervisor TRUE
+}
+DEF DWROBOT Robot {
+  translation 0 0 0.05
+  children [
+    Lidar {
+      translation 0 0 0.04
+      horizontalResolution 8
+      fieldOfView 6.2832
+      numberOfLayers 1
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        anchor 0.055 0 -0.021
+      }
+      device [
+        RotationalMotor {
+          name "left motor"
+        }
+      ]
+      endPoint Solid {
+        translation 0.055 0 -0.021
+        rotation -5.151092046202424e-10 1 -3.4932983169412266e-09 1.5706999999971314
+        children [
+          DEF WHEEL Shape {
+            appearance PBRAppearance {
+              roughness 1
+              metalness 0
+            }
+            geometry Cylinder {
+              height 0.01
+              radius 0.03
+            }
+          }
+        ]
+        name "solid(2)"
+        boundingObject USE WHEEL
+        physics Physics {
+        }
+      }
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        anchor -0.055 0 -0.021
+      }
+      device [
+        RotationalMotor {
+          name "right motor"
+        }
+      ]
+      endPoint Solid {
+        translation -0.0560179 0.00010214017687657428 -0.020916325525328083
+        rotation 0.0001419268911192198 0.999999977383633 -0.0001583966255587161 4.712501676010415
+        children [
+          USE WHEEL
+        ]
+        name "solid(1)"
+        boundingObject USE WHEEL
+        physics Physics {
+        }
+      }
+    }
+    Solid {
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 1 0 0
+            roughness 1
+            metalness 0
+          }
+          geometry Cylinder {
+            height 0.1
+            radius 0.05
+          }
+        }
+      ]
+    }
+  ]
+  boundingObject Cylinder {
+    height 0.1
+    radius 0.065
+  }
+  physics Physics {
+  }
+  controller "dwrobot_controller"
+  customData "0.04170894325478452 -0.02820178139716246 -0.5721032496508657 0.3319172415243401 0.8512448624277834;0.0007507973985347088;"
+}
