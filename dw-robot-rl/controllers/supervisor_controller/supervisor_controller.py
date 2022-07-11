@@ -1,6 +1,6 @@
 import numpy as np
 
-from controller import Supervisor
+from controller import Supervisor  # type: ignore
 
 ROBOT_RADIUS = 0.07
 
@@ -9,7 +9,7 @@ class SimulationSurpervisor(Supervisor):
 
     def __init__(self):
         super().__init__()
-        
+
         self.time_step = int(self.getBasicTimeStep())
 
         self.root_node = self.getRoot()
@@ -31,24 +31,30 @@ class SimulationSurpervisor(Supervisor):
         self.cumul_reward = 0.
 
     def send_data(self, reward=None, done=""):
-        
-        self.burger_position = self.burger_node.getField("translation").getSFVec3f()
-        
+
+        self.burger_position = self.burger_node.getField(
+            "translation"
+        ).getSFVec3f()
+
         gvec = (
             np.array(self.goal_position) - self.burger_position
         )
-        
+
         self.distance_to_goal = np.linalg.norm(gvec)
 
         if reward is None:
             reward = 1e-3 / (1 + self.distance_to_goal)
-        
+
         self.cumul_reward += reward
 
         vels = self.burger_node.getVelocity()
 
-        msg = f"{vels[0]} {vels[1]} {vels[-1]} {self.distance_to_goal} {np.arctan2(gvec[1], gvec[0])};{reward};{done}"
-        
+        msg = (
+            f"{vels[0]} {vels[1]} {vels[-1]} "
+            f"{self.distance_to_goal} "
+            f"{np.arctan2(gvec[1], gvec[0])};{reward};{done}"
+        )
+
         self.burger_node.getField(
             "customData"
         ).setSFString(msg)
@@ -57,27 +63,27 @@ class SimulationSurpervisor(Supervisor):
         for i in range(2):
             if self.burger_position[i] + ROBOT_RADIUS > 0.5:
                 self.send_data(-5, "done")
-                
+
                 print(self.cumul_reward - 5, "BF")
                 self.cumul_reward = 0.
-                
+
                 return True
             elif self.burger_position[i] - ROBOT_RADIUS < -0.5:
-                
+
                 self.send_data(-5, "done")
 
                 print(self.cumul_reward - 5, "BF")
                 self.cumul_reward = 0.
-                
+
                 return True
-        if self.distance_to_goal < 0.0625:
+        if self.distance_to_goal - 0.5*ROBOT_RADIUS < 0.0625:
             self.send_data(20, "done")
 
             print(self.cumul_reward + 20, "GF")
             self.cumul_reward = 0.
 
             return True
-        
+
         self.send_data()
         return False
 
@@ -86,7 +92,8 @@ class SimulationSurpervisor(Supervisor):
             if self.done():
                 self.burger_node.getField(
                     "translation"
-                ).setSFVec3f([0., 0., 0.0])
+                ).setSFVec3f([0., 0., 0.05])
+
 
 if __name__ == "__main__":
 
