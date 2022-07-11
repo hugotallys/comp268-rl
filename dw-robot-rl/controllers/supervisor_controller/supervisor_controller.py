@@ -63,27 +63,16 @@ class SimulationSurpervisor(Supervisor):
         for i in range(2):
             if self.burger_position[i] + ROBOT_RADIUS > 0.5:
                 self.send_data(-5, "done")
-
-                print(self.cumul_reward - 5, "BF")
                 self.cumul_reward = 0.
-
                 return True
             elif self.burger_position[i] - ROBOT_RADIUS < -0.5:
-
                 self.send_data(-5, "done")
-
-                print(self.cumul_reward - 5, "BF")
                 self.cumul_reward = 0.
-
                 return True
         if self.distance_to_goal - 0.5*ROBOT_RADIUS < 0.0625:
             self.send_data(20, "done")
-
-            print(self.cumul_reward + 20, "GF")
             self.cumul_reward = 0.
-
             return True
-
         self.send_data()
         return False
 
@@ -93,6 +82,7 @@ class SimulationSurpervisor(Supervisor):
                 self.burger_node.getField(
                     "translation"
                 ).setSFVec3f([0., 0., 0.05])
+                self.burger_node.setVelocity([0.]*6)
 
 
 if __name__ == "__main__":

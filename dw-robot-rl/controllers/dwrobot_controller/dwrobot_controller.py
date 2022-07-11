@@ -3,8 +3,8 @@ import numpy as np
 from controller import Robot  # type: ignore
 from tiles3 import tiles, IHT
 
-DISCOUNT = 0.96
-EXPLORE_RATE = 0.18
+DISCOUNT = 0.99
+EXPLORE_RATE = 0.05
 
 maxSize = 2**20
 iht = IHT(maxSize)
@@ -17,7 +17,7 @@ weights = np.zeros(shape=maxSize)
 def mytiles(s, a, tile_dim=20):
     s = s.copy()
 
-    a /= 2
+    a /= 3
 
     s[-5:-3] = (s[-5:-3] + 0.05) / (2 * 0.05)
     s[-3] = (0.6 + s[-3]) / (2 * 0.6)
@@ -33,12 +33,15 @@ def q_hat(s, a):
 
 class Turtlebot3Burger(Robot):
 
-    def __init__(self):
+    wheel_radius = 0.03
+    body_diameter = 0.06
+    action_delay = 1000
+
+    def __init__(self, lin_vel=0.05, ang_vel=0.25*np.pi, lidar_pc=False):
         super().__init__()
 
-        self.forward_velocity = 0.05
-        self.wheel_radius = 0.03
-        self.body_width = 0.06
+        self.lin_vel = lin_vel
+        self.ang_vel = ang_vel
 
         self.time_step = int(self.getBasicTimeStep())
 
@@ -50,19 +53,26 @@ class Turtlebot3Burger(Robot):
 
         self.lidar_sensor = self.getDevice("lidar")
         self.lidar_sensor.enable(self.time_step)
-        # self.lidar_sensor.enablePointCloud()
 
-        self.angular_velocities = np.array([-1.15, 0., 1.15])
+        if lidar_pc:
+            self.lidar_sensor.enablePointCloud()
+
+        self.actions = [
+            (self.lin_vel, 0.),
+            (0, 8*self.ang_vel),
+            (0., 2*self.ang_vel),
+            (0., -2*self.ang_vel)
+        ]
 
     def actuate(self, action=None):
 
-        angular_velocity = self.angular_velocities[action]
+        v, w = self.actions[action]
 
         left_speed = (
-            self.forward_velocity - 0.5*self.body_width*angular_velocity
+            v - 0.5*self.body_diameter*w
         ) / self.wheel_radius
         right_speed = (
-            self.forward_velocity + 0.5*self.body_width*angular_velocity
+            v + 0.5*self.body_diameter*w
         ) / self.wheel_radius
 
         self.left_wheel.setVelocity(left_speed)
@@ -91,9 +101,7 @@ class Turtlebot3Burger(Robot):
         return state, custom_data["reward"], custom_data["done"]
 
     def control(self):
-
-        action_delay = 1.
-        delay_steps = int(1e3*action_delay / self.time_step)
+        delay_steps = int(self.action_delay / self.time_step)
 
         while self.step(self.time_step) != -1:
 
@@ -103,15 +111,15 @@ class Turtlebot3Burger(Robot):
             # print(curr_state)
 
             if np.random.uniform() < EXPLORE_RATE:
-                action = np.random.randint(0, self.angular_velocities.shape[0])
+                action = np.random.randint(0, len(self.actions))
             else:
                 action = np.array(
                     [
-                        q_hat(curr_state, a) for a in range(
-                            self.angular_velocities.shape[0]
-                        )
+                        q_hat(curr_state, a) for a in range(len(self.actions))
                     ]
                 ).argmax()
+
+            # print(action)
 
             self.actuate(action)
 
@@ -125,7 +133,7 @@ class Turtlebot3Burger(Robot):
                         np.array(
                             [
                                 q_hat(next_state, a) for a in range(
-                                    self.angular_velocities.shape[0]
+                                    len(self.actions)
                                 )
                             ]
                         )
@@ -138,11 +146,11 @@ class Turtlebot3Burger(Robot):
 
                 delay_steps -= 1
 
-            delay_steps = int(1e3*action_delay / self.time_step)
+            delay_steps = int(self.action_delay / self.time_step)
 
 
 if __name__ == "__main__":
     # create the Robot instance.
     robot = Turtlebot3Burger()
-    robot.actuate(action=1)
+    robot.actuate(action=0)
     robot.control()
