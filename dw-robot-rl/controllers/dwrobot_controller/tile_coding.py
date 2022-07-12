@@ -5,7 +5,7 @@ from matplotlib.animation import FuncAnimation
 from matplotlib import pyplot as plt
 
 
-def f(X): return 3*np.sin(X) - 2*np.cos(X**2) - np.e * np.log(1 / (X + 3))
+def f(X): return np.sin(X) + np.cos(X)
 def _f(X, w): return w[X].sum()
 
 
@@ -20,12 +20,11 @@ def animate(i):
 
 class Tile:
 
-    iht_size = 2048
-
-    def __init__(self, tiling_size, num_tilings):
+    def __init__(self, tiling_size, num_tilings, iht_size):
 
         self.tiling_size = tiling_size
         self.num_tilings = num_tilings
+        self.iht_size = iht_size
         self.iht = tiles.IHT(self.iht_size)
         self.step = 0.1 / self.num_tilings
 
@@ -45,7 +44,7 @@ if __name__ == "__main__":
     y = f(x)
     _y = np.zeros(shape=(N_ITER, 100))
 
-    tile = Tile(tiling_size=5, num_tilings=128)
+    tile = Tile(tiling_size=5, num_tilings=128, iht_size=2048)
 
     w = np.zeros(shape=2048)
 

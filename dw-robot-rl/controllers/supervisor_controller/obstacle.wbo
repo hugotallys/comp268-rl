@@ -1,0 +1,19 @@
+DEF BOX_0 Solid {
+  translation 0.25 -0.25 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0 1 0
+        roughness 1
+        metalness 0
+      }
+      geometry DEF BOX Cylinder {
+        height 0.2
+        radius 0.025
+      }
+    }
+  ]
+  boundingObject USE BOX
+  physics Physics {
+  }
+}

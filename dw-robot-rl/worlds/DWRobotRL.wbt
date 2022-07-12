@@ -4,14 +4,15 @@ WorldInfo {
   physicsDisableTime 0
 }
 Viewpoint {
-  orientation 0.5871089822486579 -0.5786685226103928 -0.5660793088453686 4.194089157474577
-  position 0.11480665791658193 0.055339695686408286 4.205144550033143
+  orientation 0.1782668465189886 -0.24949143024326947 -0.9518271679603095 5.1187777692276875
+  position -1.7267835217814294 -3.9207228588882117 1.6503272011652435
 }
 TexturedBackground {
 }
 TexturedBackgroundLight {
 }
 RectangleArena {
+  floorSize 2 2
   floorTileSize 0.25 0.25
   wallHeight 0.15
 }
@@ -25,7 +26,7 @@ DEF DWROBOT Robot {
   children [
     Lidar {
       translation 0 0 0.04
-      horizontalResolution 8
+      horizontalResolution 4
       fieldOfView 6.2832
       numberOfLayers 1
     }
@@ -40,7 +41,7 @@ DEF DWROBOT Robot {
       ]
       endPoint Solid {
         translation 0.055 0 -0.021
-        rotation -5.151090279763327e-10 1 -3.493298316941226e-09 1.5706999999971316
+        rotation -5.151090574169847e-10 1 -3.493298326754779e-09 1.5706999999971307
         children [
           DEF WHEEL Shape {
             appearance PBRAppearance {
@@ -69,8 +70,8 @@ DEF DWROBOT Robot {
         }
       ]
       endPoint Solid {
-        translation -0.0560179 0.00010214017687657209 -0.020916325525328083
-        rotation 0.00014192689111937679 0.999999977383633 -0.00015839662555879454 4.712501676010415
+        translation -0.0560179 0.00010214017687657157 -0.020916325525328083
+        rotation 0.0001419268911189058 0.999999977383633 -0.00015839662555895166 4.712501676010415
         children [
           USE WHEEL
         ]
@@ -103,5 +104,5 @@ DEF DWROBOT Robot {
   physics Physics {
   }
   controller "dwrobot_controller"
-  customData "-0.002255599828152354 0.0476881589091112 -0.01315127098763067 0.4249170575637651 0.7281024044376752;0.000701795234109793;"
+  customData "1.267655038552221 0.5058630849124508;-0.002267655038552221;"
 }
