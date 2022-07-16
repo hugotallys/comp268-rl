@@ -19,7 +19,7 @@ class DisplayGraph:
 
         self.moving_mean = 25
 
-        self.update_plot(0., 1, 0.1)
+        self.update_plot(0., 1, 0.05)
 
     def update_plot(self, value, ep, er):
 
@@ -28,7 +28,7 @@ class DisplayGraph:
         else:
             self.y_axis = np.roll(self.y_axis, -1)
 
-        value = self.map(value, -10, 25)
+        value = self.map(value, -7, 12)
         self.y_axis[self.pointer] = value
 
         self.display.setColor(0)
@@ -82,8 +82,8 @@ class DWRobot(Robot):
     weights = np.zeros(shape=tile.iht_size)
     ranges = [(0., 2.)] * 4 + [(0., 1.), (-np.pi, np.pi)]
 
-    discount = 0.8
-    explore = 0.1
+    discount = 0.99
+    explore = 0.05
 
     def __init__(self, lin_vel=0.05, ang_vel=0.25*np.pi, lidar_pc=False):
         super().__init__()
@@ -166,6 +166,8 @@ class DWRobot(Robot):
             curr_state, reward, done = self.observe()
             cumul_reward += reward
 
+            # print(reward)
+
             if np.random.uniform() < self.explore:
                 action = np.random.randint(0, len(self.actions))
             else:
@@ -185,10 +187,10 @@ class DWRobot(Robot):
                 cumul_reward += reward
 
                 if done:
-                    if reward > 0:
-                        self.explore = max(self.explore - 0.01, 0.01)
-                    elif reward < 0:
-                        self.explore = min(self.explore + 0.01, 0.10)
+                    # if reward > 0:
+                    #     self.explore = max(self.explore - 0.01, 0.01)
+                    # elif reward < 0:
+                    #    self.explore = min(self.explore + 0.01, 0.10)
 
                     state_action = np.concatenate(
                         (curr_state, np.array([action]))

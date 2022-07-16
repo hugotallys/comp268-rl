@@ -10,8 +10,8 @@ class Obstacle:
 
     def __init__(self, id):
         self.id = id
-        self.x = np.random.uniform(-0.5, 0.5)
-        self.y = np.random.uniform(-0.5, 0.5)
+        self.x = np.random.uniform(0.25, 0.50)
+        self.y = np.random.uniform(0.25, 0.50)
         self.z = 0.05
         self.radius = 0.025
 
@@ -29,6 +29,7 @@ class SimulationSurpervisor(Supervisor):
         super().__init__()
 
         self.time_step = int(self.getBasicTimeStep())
+        self.iter = 0
 
         self.root_node = self.getRoot()
         self.children_field = self.root_node.getField("children")
@@ -39,6 +40,8 @@ class SimulationSurpervisor(Supervisor):
 
         self.goal_position = [0.5, 0.5, 0]
         self.distance_to_goal = np.linalg.norm(self.goal_position)
+        self.prev_dist = self.distance_to_goal
+        self.prev_iter = 1
 
         self.goal_node.getField(
             "translation"
@@ -72,8 +75,17 @@ class SimulationSurpervisor(Supervisor):
 
         self.distance_to_goal = np.linalg.norm(gvec)
 
+        K = -0.01
+        if self.iter - self.prev_iter > 200:
+            self.prev_dist = self.distance_to_goal
+            self.prev_iter = self.iter
+
+        # R = np.array(self.burger_node.getOrientation()).reshape(3, 3)
+        # v = R.dot(np.array([0, -1, 0]))
+        # cos = 1.  # v.dot(gvec/self.distance_to_goal)
+
         if reward is None:
-            reward = -1e-3 * self.distance_to_goal
+            reward = K * (self.distance_to_goal - self.prev_dist)
 
         msg = (
             f"{self.distance_to_goal} "
@@ -87,7 +99,7 @@ class SimulationSurpervisor(Supervisor):
     def check_collision(self, x0, y0, x1, y1, d):
         return np.sqrt((x0 - x1)**2 + (y0 - y1)**2) < d
 
-    def done(self, iter):
+    def done(self):
         for obs in self.obstacles:
             obs_pos = obs.get_obstacle_position()
             collided = self.check_collision(
@@ -111,7 +123,7 @@ class SimulationSurpervisor(Supervisor):
             self.send_data(10, "done")
             return True
 
-        if iter > MAX_ITER:
+        if self.iter > MAX_ITER:
             self.send_data(0, "done")
             return True
         else:
@@ -119,15 +131,15 @@ class SimulationSurpervisor(Supervisor):
             return False
 
     def control(self):
-        i = 0
         while self.step(self.time_step) != -1:
-            i += 1
-            if self.done(i):
+            self.iter += 1
+            if self.done():
                 self.burger_node.getField(
                     "translation"
                 ).setSFVec3f([0., 0., 0.08])
                 self.burger_node.setVelocity([0.]*6)
-                i = 0
+                self.iter = 0
+                self.prev_iter = 0
 
 
 if __name__ == "__main__":

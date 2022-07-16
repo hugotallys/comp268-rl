@@ -4,8 +4,8 @@ WorldInfo {
   physicsDisableTime 0
 }
 Viewpoint {
-  orientation 0.5140740702023664 -0.44949284089041686 -0.7305368138114839 4.318166057453726
-  position -0.18364621013751878 -3.086915176004201 7.958013558779007
+  orientation 0.5930318947296911 -0.5730558313095256 -0.5656148743053537 4.176293613320578
+  position -0.7536344611133325 0.16987169033229932 7.152573942022798
 }
 TexturedBackground {
 }
@@ -45,7 +45,7 @@ DEF DWROBOT Robot {
       ]
       endPoint Solid {
         translation 0.057 0 -0.04
-        rotation -0.09023441407378537 0.9914632205129418 -0.09411924822726934 1.5765596662945986
+        rotation -0.0902344140737853 0.9914632205129418 -0.09411924822726937 1.5765596662945982
         children [
           DEF WHEEL Shape {
             appearance PBRAppearance {
@@ -75,7 +75,7 @@ DEF DWROBOT Robot {
       ]
       endPoint Solid {
         translation -0.057 0 -0.04
-        rotation -0.3894267290865289 -0.8346281358279032 0.389541650606718 1.7483068330744849
+        rotation -0.38942672908652864 -0.8346281358279033 0.38954165060671814 1.7483068330744849
         children [
           USE WHEEL
         ]
@@ -96,7 +96,7 @@ DEF DWROBOT Robot {
       }
       endPoint Solid {
         translation 0 0.03 -0.06
-        rotation 0.9999876185692979 -0.0048277552630728955 0.0012064357523842288 0.658517055744995
+        rotation 0.9999876185692977 -0.004827755263069842 0.0012064357523863224 0.6585170557449751
         children [
           Shape {
             appearance PBRAppearance {
@@ -126,7 +126,7 @@ DEF DWROBOT Robot {
       }
       endPoint Solid {
         translation 0 -0.03 -0.06
-        rotation 0.9999876185692979 -0.0048277552630728955 0.0012064357523842288 0.658517055744995
+        rotation 0.9999876185692977 -0.004827755263070758 0.001206435752381353 0.6585170557449695
         children [
           Shape {
             appearance PBRAppearance {
@@ -146,6 +146,7 @@ DEF DWROBOT Robot {
       }
     }
     Solid {
+      rotation 0 0 1 3.1415
       children [
         Shape {
           appearance PBRAppearance {
@@ -176,5 +177,5 @@ DEF DWROBOT Robot {
   physics Physics {
   }
   controller "dwrobot_controller"
-  customData "0.5551197690764273 1.1029815045539477;-0.0005551197690764274;"
+  customData "1.3852063315090182 0.33274596485888963;-3.316284227359745e-05;"
 }
