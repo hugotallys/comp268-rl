@@ -1,11 +1,11 @@
 #VRML_SIM R2022a utf8
 WorldInfo {
-  basicTimeStep 16
+  basicTimeStep 8
   physicsDisableTime 0
 }
 Viewpoint {
-  orientation 0.1782668465189886 -0.24949143024326947 -0.9518271679603095 5.1187777692276875
-  position -1.7267835217814294 -3.9207228588882117 1.6503272011652435
+  orientation 0.5140740702023664 -0.44949284089041686 -0.7305368138114839 4.318166057453726
+  position -0.18364621013751878 -3.086915176004201 7.958013558779007
 }
 TexturedBackground {
 }
@@ -22,8 +22,12 @@ Robot {
   supervisor TRUE
 }
 DEF DWROBOT Robot {
-  translation 0 0 0.05
+  translation 0 0 0.08
   children [
+    Display {
+      width 640
+      height 360
+    }
     Lidar {
       translation 0 0 0.04
       horizontalResolution 4
@@ -32,7 +36,7 @@ DEF DWROBOT Robot {
     }
     HingeJoint {
       jointParameters HingeJointParameters {
-        anchor 0.055 0 -0.021
+        anchor 0.057 0 -0.04
       }
       device [
         RotationalMotor {
@@ -40,8 +44,8 @@ DEF DWROBOT Robot {
         }
       ]
       endPoint Solid {
-        translation 0.055 0 -0.021
-        rotation -5.151090574169847e-10 1 -3.493298326754779e-09 1.5706999999971307
+        translation 0.057 0 -0.04
+        rotation -0.09023441407378537 0.9914632205129418 -0.09411924822726934 1.5765596662945986
         children [
           DEF WHEEL Shape {
             appearance PBRAppearance {
@@ -62,7 +66,7 @@ DEF DWROBOT Robot {
     }
     HingeJoint {
       jointParameters HingeJointParameters {
-        anchor -0.055 0 -0.021
+        anchor -0.057 0 -0.04
       }
       device [
         RotationalMotor {
@@ -70,13 +74,73 @@ DEF DWROBOT Robot {
         }
       ]
       endPoint Solid {
-        translation -0.0560179 0.00010214017687657157 -0.020916325525328083
-        rotation 0.0001419268911189058 0.999999977383633 -0.00015839662555895166 4.712501676010415
+        translation -0.057 0 -0.04
+        rotation -0.3894267290865289 -0.8346281358279032 0.389541650606718 1.7483068330744849
         children [
           USE WHEEL
         ]
         name "solid(1)"
         boundingObject USE WHEEL
+        physics Physics {
+        }
+      }
+    }
+    BallJoint {
+      jointParameters BallJointParameters {
+        anchor 0 0.03 -0.06
+      }
+      jointParameters2 JointParameters {
+      }
+      jointParameters3 JointParameters {
+        axis 0 1 0
+      }
+      endPoint Solid {
+        translation 0 0.03 -0.06
+        rotation 0.9999876185692979 -0.0048277552630728955 0.0012064357523842288 0.658517055744995
+        children [
+          Shape {
+            appearance PBRAppearance {
+              roughness 1
+              metalness 0
+            }
+            geometry DEF BALL_WHEEL Sphere {
+              radius 0.01
+              subdivision 3
+            }
+          }
+        ]
+        name "solid(3)"
+        boundingObject USE BALL_WHEEL
+        physics Physics {
+        }
+      }
+    }
+    BallJoint {
+      jointParameters BallJointParameters {
+        anchor 0 -0.03 -0.06
+      }
+      jointParameters2 JointParameters {
+      }
+      jointParameters3 JointParameters {
+        axis 0 1 0
+      }
+      endPoint Solid {
+        translation 0 -0.03 -0.06
+        rotation 0.9999876185692979 -0.0048277552630728955 0.0012064357523842288 0.658517055744995
+        children [
+          Shape {
+            appearance PBRAppearance {
+              roughness 1
+              metalness 0
+            }
+            geometry DEF BALL_WHEEL Sphere {
+              radius 0.01
+              subdivision 3
+            }
+          }
+        ]
+        name "solid(4)"
+        boundingObject USE BALL_WHEEL
         physics Physics {
         }
       }
@@ -95,14 +159,22 @@ DEF DWROBOT Robot {
           }
         }
       ]
+      boundingObject Shape {
+        geometry Cylinder {
+          height 0.1
+          radius 0.05
+        }
+      }
+      physics Physics {
+      }
     }
   ]
   boundingObject Cylinder {
     height 0.1
-    radius 0.065
+    radius 0.07
   }
   physics Physics {
   }
   controller "dwrobot_controller"
-  customData "1.267655038552221 0.5058630849124508;-0.002267655038552221;"
+  customData "0.5551197690764273 1.1029815045539477;-0.0005551197690764274;"
 }

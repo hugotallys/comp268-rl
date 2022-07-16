@@ -2,7 +2,8 @@ import numpy as np
 
 from controller import Supervisor  # type: ignore
 
-ROBOT_RADIUS = 0.07
+ROBOT_RADIUS = 0.075
+MAX_ITER = 5000
 
 
 class Obstacle:
@@ -45,8 +46,6 @@ class SimulationSurpervisor(Supervisor):
 
         self.burger_position = np.array([0., 0., 0.])
 
-        self.cumul_reward = 0.
-
         self.obstacles = [Obstacle(id=i) for i in range(n)]
 
         for i in range(n):
@@ -74,9 +73,7 @@ class SimulationSurpervisor(Supervisor):
         self.distance_to_goal = np.linalg.norm(gvec)
 
         if reward is None:
-            reward = -1e-3 * (1 + self.distance_to_goal)
-
-        self.cumul_reward += reward
+            reward = -1e-3 * self.distance_to_goal
 
         msg = (
             f"{self.distance_to_goal} "
@@ -90,7 +87,7 @@ class SimulationSurpervisor(Supervisor):
     def check_collision(self, x0, y0, x1, y1, d):
         return np.sqrt((x0 - x1)**2 + (y0 - y1)**2) < d
 
-    def done(self):
+    def done(self, iter):
         for obs in self.obstacles:
             obs_pos = obs.get_obstacle_position()
             collided = self.check_collision(
@@ -100,33 +97,37 @@ class SimulationSurpervisor(Supervisor):
             )
             if collided:
                 self.send_data(-5, "done")
-                self.cumul_reward = 0.
                 return True
 
         for i in range(2):
             if self.burger_position[i] + ROBOT_RADIUS > 1:
                 self.send_data(-5, "done")
-                self.cumul_reward = 0.
                 return True
             elif self.burger_position[i] - ROBOT_RADIUS < -1:
                 self.send_data(-5, "done")
-                self.cumul_reward = 0.
                 return True
 
         if self.distance_to_goal - 0.5*ROBOT_RADIUS < 0.125:
-            self.send_data(20, "done")
-            self.cumul_reward = 0.
+            self.send_data(10, "done")
             return True
-        self.send_data()
-        return False
+
+        if iter > MAX_ITER:
+            self.send_data(0, "done")
+            return True
+        else:
+            self.send_data()
+            return False
 
     def control(self):
+        i = 0
         while self.step(self.time_step) != -1:
-            if self.done():
+            i += 1
+            if self.done(i):
                 self.burger_node.getField(
                     "translation"
-                ).setSFVec3f([0., 0., 0.05])
+                ).setSFVec3f([0., 0., 0.08])
                 self.burger_node.setVelocity([0.]*6)
+                i = 0
 
 
 if __name__ == "__main__":
