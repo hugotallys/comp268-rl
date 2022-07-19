@@ -5,7 +5,7 @@ WorldInfo {
 }
 Viewpoint {
   orientation 0.29836999301157974 -0.21936434011345923 -0.9288996897172787 4.409168399632598
-  position 0.18130864588697476 -4.259970480230329 2.935421565392282
+  position 0.20340538369858288 -4.103242552756194 2.994367270196295
 }
 TexturedBackground {
 }
@@ -45,7 +45,7 @@ DEF DWROBOT Robot {
       ]
       endPoint Solid {
         translation 0.057 0 -0.04
-        rotation -0.0902344140737853 0.9914632205129418 -0.09411924822726937 1.5765596662945982
+        rotation -0.0902344140737854 0.9914632205129418 -0.09411924822726939 1.5765596662945975
         children [
           DEF WHEEL Shape {
             appearance PBRAppearance {
@@ -75,7 +75,7 @@ DEF DWROBOT Robot {
       ]
       endPoint Solid {
         translation -0.057 0 -0.04
-        rotation -0.38942672908652864 -0.8346281358279033 0.38954165060671814 1.7483068330744849
+        rotation -0.38942672908652876 -0.8346281358279032 0.38954165060671814 1.7483068330744846
         children [
           USE WHEEL
         ]
@@ -96,7 +96,7 @@ DEF DWROBOT Robot {
       }
       endPoint Solid {
         translation 0 0.03 -0.06
-        rotation 0.9999876185692976 -0.004827755263069759 0.0012064357523862942 0.6585170557449751
+        rotation 0.9999876185692976 -0.004827755263070255 0.0012064357523862135 0.6585170557449758
         children [
           Shape {
             appearance PBRAppearance {
@@ -126,7 +126,7 @@ DEF DWROBOT Robot {
       }
       endPoint Solid {
         translation 0 -0.03 -0.06
-        rotation 0.9999876185692977 -0.004827755263070676 0.0012064357523813242 0.6585170557449695
+        rotation 0.9999876185692976 -0.004827755263070739 0.0012064357523813962 0.6585170557449689
         children [
           Shape {
             appearance PBRAppearance {
@@ -177,5 +177,5 @@ DEF DWROBOT Robot {
   physics Physics {
   }
   controller "dwrobot_controller"
-  customData "0.8724331925465624 -0.005827708802717636;-0.00014100951906456882;"
+  customData "0.7317199428516884 0.81419107207811;-0.0024613161665140828;"
 }

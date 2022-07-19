@@ -6,7 +6,7 @@ from tile_coding import Tile
 
 class DisplayGraph:
 
-    def __init__(self, display, buffer_size):
+    def __init__(self, display, buffer_size, er):
         self.display = display
 
         self.width = self.display.getWidth()
@@ -19,9 +19,9 @@ class DisplayGraph:
 
         self.moving_mean = 25
 
-        self.update_plot(0., 1, 0.05)
+        self.update_plot(0., 1, er, 0)
 
-    def update_plot(self, value, ep, er):
+    def update_plot(self, value, ep, er, h):
 
         if self.pointer < self.buffer_size - 1:
             self.pointer += 1
@@ -40,6 +40,9 @@ class DisplayGraph:
 
         self.display.setColor(0xFFFFFF)
         self.display.drawText("Epoch %d" % (ep,), self.width - 220, 10)
+
+        self.display.setColor(0xFFFFFF)
+        self.display.drawText("Hits %d" % (h,), self.width - 100, 10)
 
         self.display.setColor(0xFFFFFF)
         self.display.drawText(
@@ -78,12 +81,13 @@ class DWRobot(Robot):
     wheel_radius = 0.03
     body_diameter = 0.06
     action_delay = 1000
-    tile = Tile(tiling_size=10, num_tilings=128, iht_size=2**22)
+    tile = Tile(tiling_size=5, num_tilings=128, iht_size=2**22)
     weights = np.zeros(shape=tile.iht_size)
     ranges = [(0., 2.)] * 4 + [(0., 1.), (-np.pi, np.pi)]
 
-    discount = 0.99
-    explore = 0.05
+    discount = 0.96
+    explore = 0.9
+    explore_decay = 0.996
 
     def __init__(self, lin_vel=0.05, ang_vel=0.25*np.pi, lidar_pc=False):
         super().__init__()
@@ -105,13 +109,14 @@ class DWRobot(Robot):
         if lidar_pc:
             self.lidar_sensor.enablePointCloud()
 
-        self.display = DisplayGraph(self.getDevice("display"), 200)
+        self.display = DisplayGraph(
+            self.getDevice("display"), 200, self.explore
+        )
 
         self.actions = [
             (self.lin_vel, 0.),
-            (0, 8*self.ang_vel),
-            (0., 2*self.ang_vel),
-            (0., -2*self.ang_vel)
+            (0., self.ang_vel),
+            (0., -self.ang_vel)
         ]
 
         self.ranges.append((0, len(self.actions)-1))
@@ -159,14 +164,14 @@ class DWRobot(Robot):
     def control(self):
         epoch = 1
         cumul_reward = 0.
+        hits = 0
         delay_steps = int(self.action_delay / self.time_step)
+        reset_flag = True
 
         while self.step(self.time_step) != -1:
 
             curr_state, reward, done = self.observe()
             cumul_reward += reward
-
-            # print(reward)
 
             if np.random.uniform() < self.explore:
                 action = np.random.randint(0, len(self.actions))
@@ -186,11 +191,7 @@ class DWRobot(Robot):
                 next_state, reward, done = self.observe()
                 cumul_reward += reward
 
-                if done:
-                    # if reward > 0:
-                    #     self.explore = max(self.explore - 0.01, 0.01)
-                    # elif reward < 0:
-                    #    self.explore = min(self.explore + 0.01, 0.10)
+                if done and reset_flag:
 
                     state_action = np.concatenate(
                         (curr_state, np.array([action]))
@@ -210,12 +211,18 @@ class DWRobot(Robot):
                             curr_state, action
                         )
                     )
-                    self.display.update_plot(cumul_reward, epoch, self.explore)
+                    self.explore = max(self.explore * self.explore_decay, 0.01)
+                    hits = hits + 1 if reward == 5 else hits
+                    self.display.update_plot(
+                        cumul_reward, epoch, self.explore, hits
+                    )
                     cumul_reward = 0.
                     epoch += 1
+                    reset_flag = False
 
                 delay_steps -= 1
 
+            reset_flag = True
             delay_steps = int(self.action_delay / self.time_step)
 
 

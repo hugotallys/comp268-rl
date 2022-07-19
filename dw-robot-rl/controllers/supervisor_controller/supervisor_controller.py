@@ -10,8 +10,8 @@ class Obstacle:
 
     def __init__(self, id):
         self.id = id
-        self.x = np.random.uniform(0.25, 0.50)
-        self.y = np.random.uniform(0.25, 0.50)
+        self.x = 0.25 + id * 0.125
+        self.y = 0.25 - id * 0.125
         self.z = 0.05
         self.radius = 0.025
 
@@ -38,14 +38,11 @@ class SimulationSurpervisor(Supervisor):
         self.goal_node = self.getFromDef("GOAL")
         self.burger_node = self.getFromDef("DWROBOT")
 
-        self.goal_position = [0.5, 0.5, 0]
+        self.hit = -1
+        self.set_goal_position()
         self.distance_to_goal = np.linalg.norm(self.goal_position)
         self.prev_dist = self.distance_to_goal
         self.prev_iter = 1
-
-        self.goal_node.getField(
-            "translation"
-        ).setSFVec3f(self.goal_position)
 
         self.burger_position = np.array([0., 0., 0.])
 
@@ -63,6 +60,14 @@ class SimulationSurpervisor(Supervisor):
                 "rotation"
             ).setSFRotation([0, 0, 1, np.random.uniform(0, 2*np.pi)])
 
+    def set_goal_position(self):
+        r = self.hit // 25 * 0.05 + .3
+        theta = np.random.uniform(0, 2*np.pi)
+        self.goal_position = [r*np.cos(theta), r*np.sin(theta), 0.]
+        self.goal_node.getField(
+            "translation"
+        ).setSFVec3f(self.goal_position)
+
     def send_data(self, reward=None, done=""):
 
         self.burger_position = self.burger_node.getField(
@@ -75,17 +80,19 @@ class SimulationSurpervisor(Supervisor):
 
         self.distance_to_goal = np.linalg.norm(gvec)
 
-        K = -0.01
-        if self.iter - self.prev_iter > 200:
+        K = 1e-3
+        if self.iter - self.prev_iter > 50:
             self.prev_dist = self.distance_to_goal
             self.prev_iter = self.iter
 
-        # R = np.array(self.burger_node.getOrientation()).reshape(3, 3)
-        # v = R.dot(np.array([0, -1, 0]))
-        # cos = 1.  # v.dot(gvec/self.distance_to_goal)
+        R = np.array(self.burger_node.getOrientation()).reshape(3, 3)
+        v = R.dot(np.array([0, -1, 0]))
+
+        cos = v.dot(gvec / self.distance_to_goal)
+        ds = self.distance_to_goal - self.prev_dist
 
         if reward is None:
-            reward = K * (self.distance_to_goal - self.prev_dist)
+            reward = K * (cos - ds)
 
         msg = (
             f"{self.distance_to_goal} "
@@ -113,14 +120,15 @@ class SimulationSurpervisor(Supervisor):
 
         for i in range(2):
             if self.burger_position[i] + ROBOT_RADIUS > 1:
-                self.send_data(-5, "done")
+                self.send_data(0, "done")
                 return True
             elif self.burger_position[i] - ROBOT_RADIUS < -1:
-                self.send_data(-5, "done")
+                self.send_data(0, "done")
                 return True
 
         if self.distance_to_goal - 0.5*ROBOT_RADIUS < 0.125:
-            self.send_data(10, "done")
+            self.send_data(5, "done")
+            self.hit += 1
             return True
 
         if self.iter > MAX_ITER:
@@ -134,15 +142,21 @@ class SimulationSurpervisor(Supervisor):
         while self.step(self.time_step) != -1:
             self.iter += 1
             if self.done():
+                self.set_goal_position()
+
                 self.burger_node.getField(
                     "translation"
                 ).setSFVec3f([0., 0., 0.08])
+                self.burger_node.getField(
+                    "rotation"
+                ).setSFRotation([0., 0., 1., 0.])
                 self.burger_node.setVelocity([0.]*6)
+
                 self.iter = 0
                 self.prev_iter = 0
 
 
 if __name__ == "__main__":
 
-    robot = SimulationSurpervisor(n=0)
+    robot = SimulationSurpervisor(n=0)  # n = 6
     robot.control()
