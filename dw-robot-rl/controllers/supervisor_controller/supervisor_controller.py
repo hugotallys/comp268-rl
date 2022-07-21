@@ -90,9 +90,8 @@ class SimulationSurpervisor(Supervisor):
 
         cos = v.dot(gvec / self.distance_to_goal)
         ds = self.distance_to_goal - self.prev_dist
-
         if reward is None:
-            reward = K * (cos - ds)
+            reward = v.dot(gvec / self.distance_to_goal)
 
         msg = (
             f"{self.distance_to_goal} "
@@ -115,7 +114,7 @@ class SimulationSurpervisor(Supervisor):
                 d=ROBOT_RADIUS + obs.radius
             )
             if collided:
-                self.send_data(-5, "done")
+                self.send_data(-5000, "done")
                 return True
 
         for i in range(2):
@@ -127,7 +126,7 @@ class SimulationSurpervisor(Supervisor):
                 return True
 
         if self.distance_to_goal - 0.5*ROBOT_RADIUS < 0.125:
-            self.send_data(5, "done")
+            self.send_data(5000, "done")
             self.hit += 1
             return True
 
@@ -143,7 +142,6 @@ class SimulationSurpervisor(Supervisor):
             self.iter += 1
             if self.done():
                 self.set_goal_position()
-
                 self.burger_node.getField(
                     "translation"
                 ).setSFVec3f([0., 0., 0.08])

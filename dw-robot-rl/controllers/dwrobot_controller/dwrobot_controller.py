@@ -28,7 +28,7 @@ class DisplayGraph:
         else:
             self.y_axis = np.roll(self.y_axis, -1)
 
-        value = self.map(value, -7, 12)
+        value = self.map(value, -7e3, 7e3)
         self.y_axis[self.pointer] = value
 
         self.display.setColor(0)
@@ -49,7 +49,8 @@ class DisplayGraph:
             "Explore rate = %.2f" % (er,), self.width - 220, 30
         )
 
-        zero_value = int(self.map(0, -10, 25))
+        zero_value = int(self.map(0, -7e3, 7e3))
+        
         self.display.drawLine(
             0, self.height - zero_value,
             self.width, self.height - zero_value
@@ -79,17 +80,17 @@ class DisplayGraph:
 class DWRobot(Robot):
 
     wheel_radius = 0.03
-    body_diameter = 0.06
+    body_diameter = 0.12
     action_delay = 1000
-    tile = Tile(tiling_size=5, num_tilings=128, iht_size=2**22)
+    np.random.seed(42)
+    tile = Tile(tiling_size=10, num_tilings=64, iht_size=2**22)
     weights = np.zeros(shape=tile.iht_size)
-    ranges = [(0., 2.)] * 4 + [(0., 1.), (-np.pi, np.pi)]
 
     discount = 0.96
     explore = 0.9
     explore_decay = 0.996
 
-    def __init__(self, lin_vel=0.05, ang_vel=0.25*np.pi, lidar_pc=False):
+    def __init__(self, lin_vel=0.05, ang_vel=np.pi/2, lidar_pc=False, weights_path=""):
         super().__init__()
 
         self.lin_vel = lin_vel
@@ -119,7 +120,11 @@ class DWRobot(Robot):
             (0., -self.ang_vel)
         ]
 
+        self.ranges = [(0., 2.)] * 4 + [(0., 1.), (-np.pi, np.pi)]
+
         self.ranges.append((0, len(self.actions)-1))
+
+        self.weights_path = weights_path
 
     def actuate(self, action=None):
 
@@ -161,6 +166,9 @@ class DWRobot(Robot):
         sa = np.concatenate((s, np.array([a])))
         return self.weights[self.tile.tile(sa, self.ranges)].sum()
 
+    def save_weights(self, path):
+        np.save(path, self.weights)
+
     def control(self):
         epoch = 1
         cumul_reward = 0.
@@ -168,12 +176,15 @@ class DWRobot(Robot):
         delay_steps = int(self.action_delay / self.time_step)
         reset_flag = True
 
+        if bool(self.weights_path):
+            self.weights = np.load(self.weights_path)
+
         while self.step(self.time_step) != -1:
 
             curr_state, reward, done = self.observe()
             cumul_reward += reward
 
-            if np.random.uniform() < self.explore:
+            if np.random.uniform() < self.explore and not bool(self.weights_path):
                 action = np.random.randint(0, len(self.actions))
             else:
                 action = np.array(
@@ -192,27 +203,27 @@ class DWRobot(Robot):
                 cumul_reward += reward
 
                 if done and reset_flag:
-
-                    state_action = np.concatenate(
-                        (curr_state, np.array([action]))
-                    )
-                    state_tiles = self.tile.tile(state_action, self.ranges)
-                    q_hat_next = np.max(
-                        np.array(
-                            [
-                                self.q_hat(next_state, a) for a in range(
-                                    len(self.actions)
-                                )
-                            ]
+                    if not bool(self.weights_path):
+                        state_action = np.concatenate(
+                            (curr_state, np.array([action]))
                         )
-                    )
-                    self.weights[state_tiles] += self.tile.step * (
-                        reward + self.discount * q_hat_next - self.q_hat(
-                            curr_state, action
+                        state_tiles = self.tile.tile(state_action, self.ranges)
+                        q_hat_next = np.max(
+                            np.array(
+                                [
+                                    self.q_hat(next_state, a) for a in range(
+                                        len(self.actions)
+                                    )
+                                ]
+                            )
                         )
-                    )
-                    self.explore = max(self.explore * self.explore_decay, 0.01)
-                    hits = hits + 1 if reward == 5 else hits
+                        self.weights[state_tiles] += self.tile.step * (
+                            reward + self.discount * q_hat_next - self.q_hat(
+                                curr_state, action
+                            )
+                        )
+                        self.explore = max(self.explore * self.explore_decay, 0.05)
+                    hits = hits + 1 if reward == 5000 else hits
                     self.display.update_plot(
                         cumul_reward, epoch, self.explore, hits
                     )
@@ -224,9 +235,11 @@ class DWRobot(Robot):
 
             reset_flag = True
             delay_steps = int(self.action_delay / self.time_step)
+            if epoch % 50 == 0:
+                self.save_weights("./train_weights.npy")
 
 
 if __name__ == "__main__":
     # create the Robot instance.
-    robot = DWRobot(lidar_pc=False)
+    robot = DWRobot(lidar_pc=True, weights_path="")
     robot.control()
